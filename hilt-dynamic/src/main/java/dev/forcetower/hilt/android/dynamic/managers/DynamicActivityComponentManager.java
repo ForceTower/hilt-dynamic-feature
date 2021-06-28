@@ -22,50 +22,50 @@ import dagger.hilt.internal.GeneratedComponentManager;
  *
  */
 public class DynamicActivityComponentManager implements GeneratedComponentManager<Object> {
-  /** Entrypoint for {@link ActivityComponentBuilder}. */
-  @EntryPoint
-  @InstallIn(ActivityRetainedComponent.class)
-  public interface ActivityComponentBuilderEntryPoint {
-    ActivityComponentBuilder activityComponentBuilder();
-  }
+    /** Entrypoint for {@link ActivityComponentBuilder}. */
+    @EntryPoint
+    @InstallIn(ActivityRetainedComponent.class)
+    public interface ActivityComponentBuilderEntryPoint {
+        ActivityComponentBuilder activityComponentBuilder();
+    }
 
-  private volatile Object component;
-  private final Object componentLock = new Object();
+    private volatile Object component;
+    private final Object componentLock = new Object();
 
-  protected final Activity activity;
+    protected final Activity activity;
 
-  private final GeneratedComponentManager<ActivityRetainedComponent>
-      activityRetainedComponentManager;
+    private final GeneratedComponentManager<ActivityRetainedComponent>
+            activityRetainedComponentManager;
 
-  public DynamicActivityComponentManager(Activity activity) {
-    this.activity = activity;
-    this.activityRetainedComponentManager =
-        new DynamicActivityRetainedComponentManager((ComponentActivity) activity);
-  }
+    public DynamicActivityComponentManager(Activity activity) {
+        this.activity = activity;
+        this.activityRetainedComponentManager =
+                new DynamicActivityRetainedComponentManager((ComponentActivity) activity);
+    }
 
-  @Override
-  public Object generatedComponent() {
-    if (component == null) {
-      synchronized (componentLock) {
+    @Override
+    public Object generatedComponent() {
         if (component == null) {
-          component = createComponent();
+            synchronized (componentLock) {
+                if (component == null) {
+                    component = createComponent();
+                }
+            }
         }
-      }
-    }
-    return component;
-  }
-
-  protected Object createComponent() {
-    if (!(activity instanceof DynamicActivityComponentDependant)) {
-      throw new IllegalStateException(
-              "Hilt Dynamic Activity must be attached to an @DynamicAndroidEntryPoint Application. Found: "
-              + activity.getApplication().getClass());
+        return component;
     }
 
-    return EntryPoints.get(
-            activityRetainedComponentManager, ActivityComponentBuilderEntryPoint.class)
-        .activityComponentBuilder()
-        .activity(activity)
-        .build();
-  }
+    protected Object createComponent() {
+        if (!(activity instanceof DynamicActivityComponentDependant)) {
+            throw new IllegalStateException(
+                    "Hilt Dynamic Activity must be attached to an @DynamicAndroidEntryPoint Application. Found: "
+                            + activity.getApplication().getClass());
+        }
+
+        return EntryPoints.get(
+                activityRetainedComponentManager, ActivityComponentBuilderEntryPoint.class)
+                .activityComponentBuilder()
+                .activity(activity)
+                .build();
+    }
 }

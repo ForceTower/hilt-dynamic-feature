@@ -3,6 +3,7 @@ package dev.forcetower.hilt.android.dynamic.processor.internal.dynamicentrypoint
 import com.google.auto.service.AutoService
 import com.google.common.collect.ImmutableSet
 import com.squareup.javapoet.ClassName
+import dagger.hilt.android.processor.internal.androidentrypoint.InjectorEntryPointGenerator
 import dev.forcetower.hilt.android.dynamic.processor.internal.AndroidClassNames
 import dev.forcetower.hilt.android.dynamic.processor.internal.AndroidEntryPointMetadata
 import dev.forcetower.hilt.android.dynamic.processor.internal.BaseProcessor
@@ -43,7 +44,10 @@ class DynamicAndroidEntryPointProcessor : BaseProcessor() {
             dynamicRootComponentName = RootDynamicFeatureDeclarationGenerator(processingEnv, annotation, element).generate()
         } else {
             val metadata = AndroidEntryPointMetadata.of(processingEnv, element)
-            println(metadata)
+            InjectorEntryPointGenerator(getProcessingEnv(), metadata).generate()
+            when (metadata.androidType()) {
+                AndroidEntryPointMetadata.AndroidType.ACTIVITY -> DynamicActivityGenerator(processingEnv, metadata, dynamicRootComponentName).generate()
+            }
         }
     }
 }

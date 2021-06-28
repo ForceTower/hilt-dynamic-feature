@@ -18,7 +18,7 @@ import kotlin.reflect.KClass
  * Example usage (with the Hilt Gradle Plugin):
  *
  * <pre>`
- * @AndroidEntryPoint
+ * @DynamicAndroidEntryPoint
  * public final class FooActivity extends FragmentActivity {
  * @Inject Foo foo;
  *
@@ -33,7 +33,7 @@ import kotlin.reflect.KClass
  * Example usage (without the Hilt Gradle Plugin):
  *
  * <pre>`
- * @AndroidEntryPoint(FragmentActivity.class)
+ * @DynamicAndroidEntryPoint(FragmentActivity.class)
  * public final class FooActivity extends Hilt_FooActivity {
  * @Inject Foo foo;
  *

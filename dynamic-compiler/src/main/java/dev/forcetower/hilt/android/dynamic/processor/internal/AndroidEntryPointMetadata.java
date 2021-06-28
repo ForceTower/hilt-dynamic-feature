@@ -87,7 +87,7 @@ public abstract class AndroidEntryPointMetadata {
         return baseMetadata().map(AndroidEntryPointMetadata::rootMetadata).orElse(this);
     }
 
-    boolean isRootMetadata() {
+    public boolean isRootMetadata() {
         return this.equals(rootMetadata());
     }
 
@@ -153,7 +153,7 @@ public abstract class AndroidEntryPointMetadata {
     }
 
     private static ClassName generatedClassName(TypeElement element) {
-        String prefix = "Hilt_";
+        String prefix = "DynamicHilt_";
         return Processors.prepend(Processors.getEnclosedClassName(ClassName.get(element)), prefix);
     }
 

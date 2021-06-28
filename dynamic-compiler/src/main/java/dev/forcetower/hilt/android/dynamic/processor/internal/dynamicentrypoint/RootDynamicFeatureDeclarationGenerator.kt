@@ -9,6 +9,7 @@ import com.squareup.javapoet.MethodSpec
 import com.squareup.javapoet.ParameterizedTypeName
 import com.squareup.javapoet.TypeName
 import com.squareup.javapoet.TypeSpec
+import dagger.hilt.processor.internal.BaseProcessor
 import dev.forcetower.hilt.android.dynamic.processor.internal.AndroidClassNames
 import dev.forcetower.hilt.android.dynamic.processor.internal.ClassNames
 import dev.forcetower.hilt.android.dynamic.processor.internal.ComponentNames
@@ -32,7 +33,7 @@ class RootDynamicFeatureDeclarationGenerator(
 
 
     // @Generated("ApplicationGenerator")
-    // abstract class Hilt_$DYNAMIC implements GeneratedComponentManagerHolder {
+    // public final class Hilt_$DYNAMIC implements GeneratedComponentManagerHolder {
     //   ...
     // }
     fun generate(): ClassName {
@@ -48,8 +49,7 @@ class RootDynamicFeatureDeclarationGenerator(
             .addMethod(addGeneratedComponent())
             .addMethod(addStaticComponentGet())
 
-
-        println(wrapperClassName)
+        Processors.addGeneratedAnnotation(typeSpecBuilder, env, javaClass);
 
         JavaFile.builder(ClassName.get(typeElement).packageName(), typeSpecBuilder.build())
             .build()
@@ -58,6 +58,18 @@ class RootDynamicFeatureDeclarationGenerator(
         return wrapperClassName
     }
 
+    /**
+     * public static Object getGeneratedComponent() {
+     *     if (INSTANCE == null) {
+     *          synchronized(LOCK) {
+     *              if (INSTANCE == null) {
+     *                  INSTANCE = new Hilt_$DYNAMIC(context);
+     *              }
+     *          }
+     *     }
+     *     return INSTANCE;
+     * }
+     */
     private fun addStaticComponentGet(): MethodSpec {
         return MethodSpec.methodBuilder("getGeneratedComponent")
             .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
@@ -74,29 +86,14 @@ class RootDynamicFeatureDeclarationGenerator(
             .build()
     }
 
-    private fun createComponentInstance(): CodeBlock {
-        return CodeBlock.of(
-            "if (INSTANCE == null) INSTANCE = new ${"$"}T(context);",
-            wrapperClassName
-        )
-    }
-
-    private fun synchronizedBlock(block: CodeBlock): CodeBlock {
-        return CodeBlock.of("""
-            |synchronized(LOCK) {
-            |  ${"$"}L
-            |}
-            """.trimMargin(),
-            block
-        )
-    }
-
+    // private static Hilt_$DYNAMIC INSTANCE = null;
     private fun createSingletonField(): FieldSpec {
         return FieldSpec.builder(wrapperClassName, "INSTANCE", Modifier.PRIVATE, Modifier.STATIC)
             .initializer("null")
             .build()
     }
 
+    // private static final Object LOCK = new Object();
     private fun createLockObjectField(): FieldSpec {
         return FieldSpec.builder(TypeName.OBJECT, "LOCK", Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
             .initializer(CodeBlock.of("new Object()"))

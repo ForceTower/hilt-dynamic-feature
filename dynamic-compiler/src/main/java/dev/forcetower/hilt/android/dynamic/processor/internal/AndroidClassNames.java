@@ -92,6 +92,8 @@ public final class AndroidClassNames {
           get("dev.forcetower.hilt.android.dynamic.managers", "DynamicFeatureComponentManager");
   public static final ClassName ACTIVITY_COMPONENT_MANAGER =
       get("dagger.hilt.android.internal.managers", "ActivityComponentManager");
+  public static final ClassName DYNAMIC_ACTIVITY_COMPONENT_MANAGER =
+      get("dev.forcetower.hilt.android.dynamic.managers", "DynamicActivityComponentManager");
   public static final ClassName APPLICATION_COMPONENT_MANAGER =
       get("dagger.hilt.android.internal.managers", "ApplicationComponentManager");
   public static final ClassName BROADCAST_RECEIVER_COMPONENT_MANAGER =

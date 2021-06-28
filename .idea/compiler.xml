@@ -1,16 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="CompilerConfiguration">
-    <annotationProcessing>
-      <profile name="Gradle Imported" enabled="true">
-        <outputRelativeToContentRoot value="true" />
-        <processorPath useClasspath="false">
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/net.ltgt.gradle.incap/incap-processor/0.3/9be2a1a54ac5dc3b2b2e4097f6591735cff08253/incap-processor-0.3.jar" />
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/net.ltgt.gradle.incap/incap/0.3/951917c0a21acc690ab709bca2caab7ac5f92edb/incap-0.3.jar" />
-        </processorPath>
-        <module name="Hilt_Dynamic.dynamic-compiler" />
-      </profile>
-    </annotationProcessing>
     <bytecodeTargetLevel target="1.8">
       <module name="Hilt_Dynamic.app" target="12" />
       <module name="Hilt_Dynamic.dynamic" target="12" />

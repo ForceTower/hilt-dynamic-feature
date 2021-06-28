@@ -59,6 +59,8 @@ public final class ClassNames {
       get("dagger.hilt.internal", "GeneratedComponentManager");
   public static final ClassName GENERATED_COMPONENT_MANAGER_HOLDER =
       get("dagger.hilt.internal", "GeneratedComponentManagerHolder");
+  public static final ClassName DYNAMIC_ACTIVITY_COMPONENT_DEPENDANT =
+      get("dev.forcetower.hilt.android.dynamic.managers", "DynamicActivityComponentDependant");
   public static final ClassName UNINSTALL_MODULES =
       get("dagger.hilt.android.testing", "UninstallModules");
 
