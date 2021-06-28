@@ -1,0 +1,41 @@
+plugins {
+    id 'java-library'
+    id 'kotlin'
+    id 'kotlin-kapt'
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+kapt {
+    generateStubs = true
+}
+
+sourceSets {
+    main {
+        java {
+            srcDir "${buildDir.absolutePath}/tmp/kapt/main/kotlinGenerated/"
+        }
+    }
+}
+
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+    implementation 'com.squareup:javapoet:1.13.0'
+    implementation "com.google.auto.service:auto-service:1.0"
+    kapt "com.google.auto.service:auto-service:1.0"
+
+    compileOnlyApi      "com.google.auto.value:auto-value-annotations:1.8.1"
+    kapt "com.google.auto.value:auto-value:1.8.1"
+
+    compileOnly("net.ltgt.gradle.incap:incap:0.3")
+    annotationProcessor("net.ltgt.gradle.incap:incap-processor:0.3")
+    implementation "org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.3.0"
+    implementation group: 'javax.inject', name: 'javax.inject', version: '1'
+
+    implementation 'com.google.dagger:dagger:2.37'
+    kapt 'com.google.dagger:dagger-compiler:2.37'
+
+}

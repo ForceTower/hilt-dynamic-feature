@@ -1,0 +1,5 @@
+rootProject.name = "Hilt Dynamic"
+include ':app'
+include ':dynamic-compiler'
+include ':hilt-dynamic'
+include ':feature'
