@@ -1,10 +1,10 @@
 package dev.forcetower.hilt.android.dynamic
 
-import dagger.hilt.GeneratesRootInput
 import kotlin.reflect.KClass
 
-@Target(AnnotationTarget.TYPE, AnnotationTarget.CLASS)
-@GeneratesRootInput
+/** Declares the feature graph and the base app's SingletonComponent entry points it depends on. */
+@Target(AnnotationTarget.CLASS)
+@Retention(AnnotationRetention.BINARY)
 annotation class DeclareHiltDynamicFeature(
     val dependencies: Array<KClass<*>> = []
 )

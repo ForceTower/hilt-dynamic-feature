@@ -1,8 +1,8 @@
 package dev.forcetower.hilt.android.dynamic.components
-import dagger.hilt.DefineComponent
-import dagger.hilt.components.SingletonComponent
-import dev.forcetower.hilt.android.dynamic.scopes.DynamicScope
 
-@DynamicScope
-@DefineComponent(parent = SingletonComponent::class)
-interface DynamicFeatureComponent
+import dagger.hilt.internal.GeneratedComponent
+
+/** Feature-local root. Use @InstallIn(DynamicFeatureComponent::class) with @DynamicScope. */
+interface DynamicFeatureComponent : GeneratedComponent {
+    fun retainedComponentBuilder(): DynamicActivityRetainedComponent.Builder
+}

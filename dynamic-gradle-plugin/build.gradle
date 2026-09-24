@@ -1,0 +1,42 @@
+plugins {
+    id 'java-gradle-plugin'
+    id 'maven-publish'
+}
+
+group = 'dev.forcetower.hilt'
+version = '0.1.0-SNAPSHOT'
+
+repositories {
+    google()
+    mavenCentral()
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+    withSourcesJar()
+}
+
+publishing {
+    repositories {
+        maven {
+            name = 'localBuild'
+            url = layout.projectDirectory.dir('../build/repo')
+        }
+    }
+}
+
+dependencies {
+    compileOnly 'com.android.tools.build:gradle:9.3.2'
+    implementation 'org.ow2.asm:asm-commons:9.8'
+    testImplementation 'junit:junit:4.13.2'
+}
+
+gradlePlugin {
+    plugins {
+        hiltDynamic {
+            id = 'dev.forcetower.hilt.dynamic'
+            implementationClass = 'dev.forcetower.hilt.android.dynamic.plugin.HiltDynamicPlugin'
+        }
+    }
+}

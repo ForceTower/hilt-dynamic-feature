@@ -1,0 +1,7 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <activity
+            android:name="dev.forcetower.hilt.example.dynamicfeature.view.ExplicitFeatureActivity"
+            android:exported="false" />
+    </application>
+</manifest>

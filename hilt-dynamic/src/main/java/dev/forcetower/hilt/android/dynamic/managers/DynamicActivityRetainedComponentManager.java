@@ -1,163 +1,65 @@
 package dev.forcetower.hilt.android.dynamic.managers;
 
-import android.content.Context;
-
 import androidx.activity.ComponentActivity;
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.lifecycle.ViewModel;
 import androidx.lifecycle.ViewModelProvider;
-import androidx.lifecycle.ViewModelStoreOwner;
+import androidx.lifecycle.DefaultLifecycleObserver;
+import androidx.lifecycle.LifecycleOwner;
+import dev.forcetower.hilt.android.dynamic.components.DynamicActivityComponent;
+import dev.forcetower.hilt.android.dynamic.components.DynamicActivityRetainedComponent;
+import dev.forcetower.hilt.android.dynamic.components.DynamicFeatureComponent;
+import dev.forcetower.hilt.android.dynamic.lifecycle.DynamicRetainedLifecycle;
 
-import java.util.HashSet;
-import java.util.Set;
+final class DynamicActivityRetainedComponentManager {
+    private DynamicActivityRetainedComponentManager() {}
 
-import javax.inject.Inject;
-
-import dagger.Binds;
-import dagger.Module;
-import dagger.hilt.EntryPoint;
-import dagger.hilt.EntryPoints;
-import dagger.hilt.InstallIn;
-import dagger.hilt.android.ActivityRetainedLifecycle;
-import dagger.hilt.android.components.ActivityRetainedComponent;
-import dagger.hilt.android.internal.ThreadUtil;
-import dagger.hilt.android.internal.builders.ActivityRetainedComponentBuilder;
-import dagger.hilt.android.scopes.ActivityRetainedScoped;
-import dagger.hilt.components.SingletonComponent;
-import dagger.hilt.internal.GeneratedComponentManager;
-
-/** A manager for the creation of components that survives activity configuration changes. */
-final class DynamicActivityRetainedComponentManager
-        implements GeneratedComponentManager<ActivityRetainedComponent> {
-
-    /** Entry point for {@link ActivityRetainedComponentBuilder}. */
-    @EntryPoint
-    @InstallIn(SingletonComponent.class)
-    public interface ActivityRetainedComponentBuilderEntryPoint {
-        ActivityRetainedComponentBuilder retainedComponentBuilder();
+    static RetainedComponent get(
+            ComponentActivity activity, DynamicFeatureComponent feature) {
+        return new ViewModelProvider(activity, new ViewModelProvider.Factory() {
+            @NonNull
+            @Override
+            public <T extends ViewModel> T create(@NonNull Class<T> modelClass) {
+                return modelClass.cast(new RetainedComponent(feature));
+            }
+        }).get(RetainedComponent.class.getName() + ":" + feature.getClass().getName(), RetainedComponent.class);
     }
 
-    /** Entry point for {@link Lifecycle}. */
-    @EntryPoint
-    @InstallIn(ActivityRetainedComponent.class)
-    public interface ActivityRetainedLifecycleEntryPoint {
-        ActivityRetainedLifecycle getActivityRetainedLifecycle();
-    }
+    static final class RetainedComponent extends ViewModel {
+        final DynamicActivityRetainedComponent component;
+        private final DynamicRetainedLifecycle lifecycle = new DynamicRetainedLifecycle();
+        private ComponentActivity currentActivity;
+        private DynamicActivityComponent activityComponent;
 
-    static final class ActivityRetainedComponentViewModel extends ViewModel {
-        private final ActivityRetainedComponent component;
-
-        ActivityRetainedComponentViewModel(ActivityRetainedComponent component) {
-            this.component = component;
-        }
-
-        ActivityRetainedComponent getComponent() {
-            return component;
+        RetainedComponent(DynamicFeatureComponent feature) {
+            this.component = feature.retainedComponentBuilder().lifecycle(lifecycle).build();
         }
 
         @Override
         protected void onCleared() {
-            super.onCleared();
-            ActivityRetainedLifecycle lifecycle =
-                    EntryPoints.get(component, ActivityRetainedLifecycleEntryPoint.class)
-                            .getActivityRetainedLifecycle();
-            ((Lifecycle) lifecycle).dispatchOnCleared();
+            currentActivity = null;
+            activityComponent = null;
+            lifecycle.dispatchOnCleared();
         }
-    }
 
-    private final ViewModelProvider viewModelProvider;
-
-    @Nullable private volatile ActivityRetainedComponent component;
-    private final Object componentLock = new Object();
-
-    DynamicActivityRetainedComponentManager(ComponentActivity activity) {
-        this.viewModelProvider = getViewModelProvider(activity, activity);
-    }
-
-    private ViewModelProvider getViewModelProvider(
-            ViewModelStoreOwner owner, Context context) {
-        return new ViewModelProvider(
-                owner,
-                new ViewModelProvider.Factory() {
-                    @NonNull
+        synchronized DynamicActivityComponent activityComponent(ComponentActivity activity) {
+            if (currentActivity != activity) {
+                currentActivity = activity;
+                activityComponent = component.activityComponentBuilder().activity(activity).build();
+                activity.getLifecycle().addObserver(new DefaultLifecycleObserver() {
                     @Override
-                    @SuppressWarnings("unchecked")
-                    public <T extends ViewModel> T create(@NonNull Class<T> aClass) {
-                        Object dynamicComponent = ((DynamicActivityComponentDependant) context).getDynamicComponent();
-                        ActivityRetainedComponent component =
-                                EntryPoints.get(
-                                        dynamicComponent,
-                                        ActivityRetainedComponentBuilderEntryPoint.class)
-                                        .retainedComponentBuilder()
-                                        .build();
-                        return (T) new ActivityRetainedComponentViewModel(component);
+                    public void onDestroy(@NonNull LifecycleOwner owner) {
+                        synchronized (RetainedComponent.this) {
+                            if (currentActivity == owner) {
+                                currentActivity = null;
+                                activityComponent = null;
+                            }
+                        }
+                        owner.getLifecycle().removeObserver(this);
                     }
                 });
-    }
-
-    @Override
-    public ActivityRetainedComponent generatedComponent() {
-        if (component == null) {
-            synchronized (componentLock) {
-                if (component == null) {
-                    component = createComponent();
-                }
             }
+            return activityComponent;
         }
-        return component;
-    }
-
-    private ActivityRetainedComponent createComponent() {
-        return viewModelProvider.get(ActivityRetainedComponentViewModel.class).getComponent();
-    }
-
-    /** The default implementation of {@link ActivityRetainedLifecycle}. */
-    @ActivityRetainedScoped
-    static final class Lifecycle implements ActivityRetainedLifecycle {
-
-        private final Set<OnClearedListener> listeners = new HashSet<>();
-        private boolean onClearedDispatched = false;
-
-        @Inject
-        Lifecycle() {}
-
-        @Override
-        public void addOnClearedListener(@NonNull OnClearedListener listener) {
-            ThreadUtil.ensureMainThread();
-            throwIfOnClearedDispatched();
-            listeners.add(listener);
-        }
-
-        @Override
-        public void removeOnClearedListener(@NonNull OnClearedListener listener) {
-            ThreadUtil.ensureMainThread();
-            throwIfOnClearedDispatched();
-            listeners.remove(listener);
-        }
-
-        void dispatchOnCleared() {
-            ThreadUtil.ensureMainThread();
-            onClearedDispatched = true;
-            for (OnClearedListener listener : listeners) {
-                listener.onCleared();
-            }
-        }
-
-        private void throwIfOnClearedDispatched() {
-            if (onClearedDispatched) {
-                throw new IllegalStateException(
-                        "There was a race between the call to add/remove an OnClearedListener and onCleared(). "
-                                + "This can happen when posting to the Main thread from a background thread, "
-                                + "which is not supported.");
-            }
-        }
-    }
-
-    @Module
-    @InstallIn(ActivityRetainedComponent.class)
-    abstract static class LifecycleModule {
-        @Binds
-        abstract ActivityRetainedLifecycle bind(Lifecycle impl);
     }
 }

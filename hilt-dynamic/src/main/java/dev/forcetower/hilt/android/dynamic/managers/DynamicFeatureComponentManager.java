@@ -1,30 +1,28 @@
 package dev.forcetower.hilt.android.dynamic.managers;
 
-import dagger.hilt.android.internal.managers.ComponentSupplier;
-import dagger.hilt.internal.GeneratedComponentManager;
+import android.app.Application;
+import android.content.Context;
+import java.util.IdentityHashMap;
+import java.util.Map;
+import dev.forcetower.hilt.android.dynamic.components.DynamicFeatureComponent;
 
-/**
- * Do not use except in Hilt generated code!
- *
- * <p>A manager for the creation of components that live in the Application.
- */
-public final class DynamicFeatureComponentManager implements GeneratedComponentManager<Object> {
-    private volatile Object component;
-    private final Object componentLock = new Object();
-    private final ComponentSupplier componentCreator;
-
-    public DynamicFeatureComponentManager(ComponentSupplier componentCreator) {
-        this.componentCreator = componentCreator;
+public final class DynamicFeatureComponentManager {
+    public interface Factory {
+        DynamicFeatureComponent create(Application application);
     }
 
-    @Override
-    public Object generatedComponent() {
+    private final Map<Application, DynamicFeatureComponent> components = new IdentityHashMap<>();
+
+    public synchronized DynamicFeatureComponent get(Context context, Factory factory) {
+        Context application = context.getApplicationContext();
+        if (!(application instanceof Application)) {
+            throw new IllegalStateException("Dynamic Hilt requires an Application context.");
+        }
+        Application owner = (Application) application;
+        DynamicFeatureComponent component = components.get(owner);
         if (component == null) {
-            synchronized (componentLock) {
-                if (component == null) {
-                    component = componentCreator.get();
-                }
-            }
+            component = factory.create(owner);
+            components.put(owner, component);
         }
         return component;
     }

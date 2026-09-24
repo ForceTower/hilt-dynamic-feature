@@ -1,5 +1,19 @@
-rootProject.name = "Hilt Dynamic"
-include ':app'
-include ':dynamic-compiler'
-include ':hilt-dynamic'
-include ':feature'
+pluginManagement {
+    includeBuild('dynamic-gradle-plugin')
+    repositories {
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+rootProject.name = 'Hilt Dynamic'
+include ':app', ':dynamic-compiler', ':hilt-dynamic', ':feature'
